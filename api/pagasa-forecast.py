@@ -1,45 +1,38 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-import sys
-import os
+from utils.pagasa_scraper import get_daily_weather_forecast
 
-# Add the parent directory to the sys.path to allow importing pagasa_scraper
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+def handler(request):
+    # Get forecast data
+    try:
+        forecast_data = get_daily_weather_forecast()
+        if forecast_data is None:
+            raise Exception("Failed to retrieve forecast data.")
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': str(e), 'message': 'Internal Server Error'})
+        }
 
-from pagasa_scraper import get_daily_weather_forecast
+    # Set CORS headers
+    headers = {
+        'Content-type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://ulanbadyan.vercel.app/',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path in ['/api', '/api/pagasa-forecast']:  # Handle both routes
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', 'https://ulanbadyan.vercel.app/')
-            self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.end_headers()
-            
-            forecast_data = get_daily_weather_forecast()
-            self.wfile.write(json.dumps(forecast_data).encode('utf-8'))
-        else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'Not Found')
+    # Handle OPTIONS preflight request
+    if request.method == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': ''
+        }
 
-    def do_OPTIONS(self):
-        if self.path in ['/api', '/api/pagasa-forecast']:
-            # Handle CORS preflight requests
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', 'https://ulanbadyan.vercel.app/')
-            self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.end_headers()
-        else:
-            self.send_response(404)
-            self.end_headers()
-            
-if __name__ == '__main__':
-    server_address = ('', 8000)
-    httpd = HTTPServer(server_address, handler)
-    print(f'Starting httpd server on port 8000')
-    httpd.serve_forever()
+    # Handle GET request
+    return {
+        'statusCode': 200,
+        'headers': headers,
+        'body': json.dumps(forecast_data)
+    }

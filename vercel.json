@@ -1,14 +1,9 @@
 {
   "builds": [
     {
-      "src": "/api/pagasa-forecast.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "dest": "/api/(.*)",
-      "src": "/api/pagasa-forecast"
+      "src": "api/pagasa-forecast.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["utils/**"] }
     }
   ]
 }
