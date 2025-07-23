@@ -2,12 +2,14 @@ import json
 from utils.pagasa_scraper import get_daily_weather_forecast
 
 def handler(request):
+    print("Handler function invoked")  # Add logging for debugging
     # Get forecast data
     try:
         forecast_data = get_daily_weather_forecast()
         if forecast_data is None:
             raise Exception("Failed to retrieve forecast data.")
     except Exception as e:
+        print(f"Error in handler: {str(e)}")  # Log errors
         return {
             'statusCode': 500,
             'headers': {
