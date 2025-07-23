@@ -3,7 +3,17 @@
     {
       "src": "api/pagasa-forecast.py",
       "use": "@vercel/python",
-      "config": { "includeFiles": ["utils/**"] }
+      "config": {
+        "runtime": "python3.9",
+        "maxLambdaSize": "15mb",
+        "includeFiles": ["utils/**"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/pagasa-forecast",
+      "dest": "/api/pagasa-forecast.py"
     }
   ]
 }
